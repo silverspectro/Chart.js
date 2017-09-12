@@ -30,7 +30,9 @@ module.exports = function(Chart) {
 
 		labels: {
 			boxWidth: 20,
+			boxRadius: 5,
 			padding: 10,
+			rounded: false,
 			center: true,
 			hiddenSymbol: 'stroke',
 			// Generates labels shown in the legend
@@ -102,13 +104,13 @@ module.exports = function(Chart) {
 		ctx.save();
 		switch (name) {
 		case 'check':
-			var padding = boxWidth / 8;
+			var padding = boxWidth / 5;
 			ctx.beginPath();
-			ctx.lineWidth = 4;
+			ctx.lineWidth = 3;
 			ctx.strokeStyle = '#ffffff';
 			ctx.lineCap = 'round';
 			ctx.moveTo(x + padding, y + (fontSize / 2));
-			ctx.lineTo((boxWidth / 2) + x, y + (fontSize - padding));
+			ctx.lineTo((boxWidth / 2.5) + x, y + (fontSize - padding));
 			ctx.lineTo((boxWidth + x) - padding, y + padding);
 			ctx.stroke();
 			break;
@@ -411,9 +413,11 @@ module.exports = function(Chart) {
 					} else {
 						// Draw box as legend symbol
 						if (!isLineWidthZero) {
-							ctx.strokeRect(x, y, boxWidth, boxHeight);
+							if (!labelOpts.rounded) ctx.strokeRect(x, y, boxWidth, boxHeight);
+							else helpers.canvas.roundRect(ctx, x, y, boxWidth, boxHeight, labelOpts.boxRadius, false, true);
 						}
-						ctx.fillRect(x, y, boxWidth, boxHeight);
+						if (!labelOpts.rounded) ctx.fillRect(x, y, boxWidth, boxHeight);
+						else helpers.canvas.roundRect(ctx, x, y, boxWidth, boxHeight, labelOpts.boxRadius, true, false);
 					}
 
 					ctx.restore();
@@ -457,21 +461,23 @@ module.exports = function(Chart) {
 						cursor.line++;
 					}
 
-					drawLegendBox(x, y, legendItem);
+					const legendX = i === 0 ? x + (boxWidth * 2.3) : x + (boxWidth * (i + 1));
 
-					hitboxes[i].left = x;
+					drawLegendBox(legendX, y, legendItem);
+
+					hitboxes[i].left = legendX;
 					hitboxes[i].top = y;
 
 					const textY = y + (boxHeight - fontSize);
 
 					// Fill the actual label
-					fillText(x, textY, legendItem, textWidth);
+					fillText(legendX, textY, legendItem, textWidth);
 					if (labelOpts.hiddenSymbol === 'check') {
 						if (!legendItem.hidden) {
-							drawHiddenSymbol(labelOpts.hiddenSymbol, ctx, boxWidth, boxHeight, textWidth, x, y);
+							drawHiddenSymbol(labelOpts.hiddenSymbol, ctx, boxWidth, boxHeight, textWidth, legendX, y);
 						}
 					} else if (legendItem.hidden) {
-						drawHiddenSymbol(labelOpts.hiddenSymbol, ctx, boxWidth, boxHeight, textWidth, x, y);
+						drawHiddenSymbol(labelOpts.hiddenSymbol, ctx, boxWidth, boxHeight, textWidth, legendX, y);
 					}
 
 					if (isHorizontal) {
